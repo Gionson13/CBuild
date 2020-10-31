@@ -9,6 +9,7 @@
         public string[] LibraryDirs { get; set; }
         public string[] Dependencies { get; set; }
         public string[] Preprocessors { get; set; }
+        public string Std { get; set; }
         public string OptimizationLevel { get; set; }
         public bool CompilerWarnigns { get; set; } = true;
     }

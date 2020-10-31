@@ -56,6 +56,10 @@ CompilerWarnigns: true
 ```
 Shows the compiler's warnings if true. (default to true)
 
+```yaml
+Std: c11
+```
+Set the std version. (default to latest)
 
 Then to build just type `CBuild cbuild.yaml` in the command line
 

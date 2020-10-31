@@ -29,6 +29,9 @@ namespace CBuild
 
             string command = GenerateCommand(buildProperties);
 
+            if (!Directory.Exists(buildProperties.OutputDir))
+                Directory.CreateDirectory(buildProperties.OutputDir);
+
             Console.WriteLine(command);
             CallCommand(command);
             Console.WriteLine("Build Success!");
@@ -55,6 +58,10 @@ namespace CBuild
 
             if (properties.CompilerWarnigns)
                 command += " -Wall";
+
+            // Std
+            if (!string.IsNullOrWhiteSpace(properties.Std))
+                command += $" -std={properties.Std}";
 
             // Include directories
             if (properties.IncludeDirs != null)
@@ -89,7 +96,7 @@ namespace CBuild
             if (properties.Dependencies != null)
             {
                 foreach (string dependency in properties.Dependencies)
-                    command += $" -l:{dependency}";
+                    command += $" -l{dependency}";
             }
             
             // Output
