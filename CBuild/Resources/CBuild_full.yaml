@@ -1,0 +1,17 @@
+ProjectName: ProjectName
+Files:
+  - filename.c
+OutputDir: bin
+
+# Optional --------------------------------------------------------------------------
+
+IncludeDirs:
+  - path/to/directory
+LibraryDirs:
+  - path/to/directory
+Dependencies:
+  - filename.lib
+Preprocessors:
+  - PREPROCESSOR
+OptimizationLevel: 0
+CompilerWarnigns: true
