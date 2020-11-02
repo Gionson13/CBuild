@@ -46,6 +46,17 @@ namespace CBuild
                     else
                         Console.WriteLine("Missing arguments.");
                     break;
+                case "--as-file":
+                    if (args.Length > 1)
+                    {
+                        CBuild.AsFile = true;
+                        returnArgs.Filepath = args[1];
+                        if (args.Length > 2)
+                            returnArgs.Project = args[2];
+                    }
+                    else
+                        Console.WriteLine("Missing arguments.");
+                    break;
                 default:
                     returnArgs.Filepath = args[0];
                     if (args.Length > 1)
@@ -145,6 +156,8 @@ namespace CBuild
             Console.WriteLine();
             Console.WriteLine("-h, --help:      shows this page");
             Console.WriteLine("-g, --generate:  Generates a basic CBuild file");
+            Console.WriteLine("-a, --add:       Add a project to the solution");
+            Console.WriteLine("--as-file:       Generate a bat file instead of building the project");
         }
 
         private static void PrintHelpGenerate()
