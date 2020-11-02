@@ -34,7 +34,7 @@ If you look in projectName.cproj
 ```yaml
 ProjectName: projectName
 Files:
-  - filenam.c
+  - filename.c
 OutputDir: bin
 ```
 
