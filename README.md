@@ -36,7 +36,7 @@ LibraryDirs:
 
 ```yaml
 Dependencies:
-  - filename.lib
+  - filename
 ```
 List of additional dependencies to use.
 
