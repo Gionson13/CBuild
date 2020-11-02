@@ -8,6 +8,8 @@ namespace CBuild
 {
     class Program
     {
+        public static SolutionFile solutionFile;
+
         static void Main(string[] args)
         {
             var arguments = ArgsParser.Get(args);
@@ -15,15 +17,14 @@ namespace CBuild
             if (string.IsNullOrWhiteSpace(arguments.Filepath)) return;
 
             var serializer = new Serializer();
-            SolutionFile solutionFile;
             try
             {
                 solutionFile = serializer.Deserialize<SolutionFile>(File.ReadAllText(arguments.Filepath));
             }
             catch (YamlException e)
             {
-                Console.WriteLine("Parsing failed!");
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Parsing failed! -> " + arguments.Filepath);
+                Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
                 return;
             }
 

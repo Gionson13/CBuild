@@ -4,6 +4,7 @@ Requirements
 ------------
 
 - GCC compiler
+- ar (Archiver - comes with mingw)
 - Windows
 
 Build C code
@@ -36,11 +37,15 @@ ProjectName: projectName
 Files:
   - filename.c
 OutputDir: bin
+ObjectDir: obj
+OutputType: Application
 ```
 
 You add every file you want to compile in Files and you're good to go.
 
 > All the filepath must be relative to the solution directory.
+
+The possible OutputType are `Application` and `StaticLibrary`.
 
 There are also other option: 
 
@@ -61,6 +66,12 @@ Dependencies:
   - filename
 ```
 List of additional dependencies to use.
+
+```yaml
+ProjectReferences:
+  - ProjectName
+```
+List of reference to projects in the same solution. If you build this project, all the project referenced will be built.
 
 ```yaml
 Preprocessors:

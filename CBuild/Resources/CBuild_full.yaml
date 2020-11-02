@@ -1,18 +1,22 @@
 ProjectName: $(ProjectName)
 Files:
-  - filename.c
+	- filename.c
 OutputDir: bin
+ObjectDir: obj
+OutputType: Application
 
 # Optional --------------------------------------------------------------------------
 
 IncludeDirs:
-  - path/to/directory
+	- path/to/directory
 LibraryDirs:
-  - path/to/directory
+	- path/to/directory
 Dependencies:
-  - filename.lib
+	- filename.lib
+ProjectReferences:
+	- projectName
 Preprocessors:
-  - PREPROCESSOR
+	- PREPROCESSOR
 OptimizationLevel: 0
 CompilerWarnigns: true
 Std: c11
