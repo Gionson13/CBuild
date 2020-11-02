@@ -79,5 +79,15 @@ namespace CBuild.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] solution {
+            get {
+                object obj = ResourceManager.GetObject("solution", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

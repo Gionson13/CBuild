@@ -1,6 +1,6 @@
 ﻿namespace CBuild
 {
-    class BuildProperty
+    class Project
     {
         public string ProjectName { get; set; }
         public string OutputDir { get; set; }
@@ -12,5 +12,6 @@
         public string Std { get; set; }
         public string OptimizationLevel { get; set; }
         public bool CompilerWarnigns { get; set; } = true;
+        public string SolutionDir { get; set; }
     }
 }

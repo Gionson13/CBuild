@@ -5,16 +5,26 @@ using System.Text;
 
 namespace CBuild
 {
+    struct Args
+    {
+        public string Filepath;
+        public string Project;
+    }
+
     static class ArgsParser
     {
-        public static string GetFilepath(string[] args)
+        public static Args Get(string[] args)
         {
+            Args returnArgs = new Args();
+
             if (args.Length < 1)
             {
                 Console.WriteLine("Missing arguments.");
-                return "";
+                return returnArgs;
             }
 
+            bool switchGenerate = false;
+            bool switchAdd = false;
 
             switch (args[0])
             {
@@ -25,16 +35,106 @@ namespace CBuild
                 case "-g":
                 case "--generate":
                     if (args.Length > 1)
-                        GenerateFile(args[1]);
+                        switchGenerate = true;
                     else
-                        GenerateFile(null);
+                        Console.WriteLine("Missing arguments.");
+                    break;
+                case "-a":
+                case "--add":
+                    if (args.Length > 1)
+                        switchAdd = true;
+                    else
+                        Console.WriteLine("Missing arguments.");
                     break;
                 default:
-                    return args[0];
+                    returnArgs.Filepath = args[0];
+                    if (args.Length > 1)
+                        returnArgs.Project = args[1];
+                    break;
             }
 
-            return "";
+            if (switchGenerate)
+            {
+                switch (args[1])
+                {
+                    case "-h":
+                    case "--help":
+                        PrintHelpGenerate();
+                        break;
+                    case "-f":
+                    case "--full":
+                        if (args.Length > 2)
+                            GenerateSolution(args[2], true);
+                        else
+                            Console.WriteLine("Missing arguments.");
+                        break;
+                    default:
+                        GenerateSolution(args[1], false);
+                        break;
+                }
+            }
 
+            if (switchAdd)
+            {
+                switch (args[1])
+                {
+                    case "-h":
+                    case "--help":
+                        PrintHelpAdd();
+                        break;
+                    case "-f":
+                    case "--full":
+                        if (args.Length > 2)
+                            AddProject(args[2], true);
+                        else
+                            Console.WriteLine("Missing arguments.");
+                        break;
+                    default:
+                        AddProject(args[1], false);
+                        break;
+                }
+            }
+
+            return returnArgs;
+        }
+
+        private static void GenerateSolution(string solutionName, bool full)
+        {
+            Directory.CreateDirectory(solutionName);
+            GenerateFile($"{solutionName}/{solutionName}.cproj", solutionName, full);
+
+            string solutionContent = Encoding.Default.GetString(Resources.solution).Replace("$(ProjectName)", solutionName);
+            File.WriteAllText($"{solutionName}.csln", solutionContent);
+
+            Console.WriteLine("Solution generated successfully.");
+        }
+
+        private static void AddProject(string projectName, bool full)
+        {
+            Directory.CreateDirectory(projectName);
+            GenerateFile($"{projectName}/{projectName}.cproj", projectName, full);
+
+            string solutionFile = Directory.GetFiles(".", "*.csln")[0];
+            string solutionContent = File.ReadAllText(solutionFile);
+
+            solutionContent += $"\n\t- {{ Name: {projectName}, Filepath: {projectName}/{projectName}.cproj }}";
+
+            File.WriteAllText(solutionFile, solutionContent);
+        }
+
+        private static void GenerateFile(string filepath, string projectName, bool full)
+        {
+            string fileContent;
+            if (full)
+                fileContent = Encoding.Default.GetString(Resources.CBuild_full);
+            else
+                fileContent = Encoding.Default.GetString(Resources.CBuild);
+
+            fileContent = fileContent.Replace("$(ProjectName)", projectName);
+
+            File.WriteAllText(filepath, fileContent);
+
+            Console.WriteLine("CBuild file generated successfully.");
         }
 
         private static void PrintHelp()
@@ -47,14 +147,22 @@ namespace CBuild
             Console.WriteLine("-g, --generate:  Generates a basic CBuild file");
         }
 
-        private static void GenerateFile(string arg2)
+        private static void PrintHelpGenerate()
         {
-            if (arg2 != null && arg2 == "--full")
-                File.WriteAllText("CBuild.yaml", Encoding.Default.GetString(Resources.CBuild_full));
-            else
-                File.WriteAllText("CBuild.yaml", Encoding.Default.GetString(Resources.CBuild));
+            Console.WriteLine("usage:           CBuild --generate [options] solutionName");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("-h, --help:      shows this page");
+            Console.WriteLine("-f, --full:      Generates a full cproj file");
+        }
 
-            Console.WriteLine("File generated successfully.");
+        private static void PrintHelpAdd()
+        {
+            Console.WriteLine("usage:           CBuild --add [options] projectName");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("-h, --help:      shows this page");
+            Console.WriteLine("-f, --full:      Generates a full cproj file");
         }
     }
 }

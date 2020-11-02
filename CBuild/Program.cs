@@ -1,8 +1,8 @@
 ﻿using SharpYaml;
 using SharpYaml.Serialization;
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace CBuild
 {
@@ -10,15 +10,15 @@ namespace CBuild
     {
         static void Main(string[] args)
         {
-            string filepath = ArgsParser.GetFilepath(args);
+            var arguments = ArgsParser.Get(args);
 
-            if (string.IsNullOrWhiteSpace(filepath)) return;
+            if (string.IsNullOrWhiteSpace(arguments.Filepath)) return;
 
             var serializer = new Serializer();
-            BuildProperty buildProperties;
+            SolutionFile solutionFile;
             try
             {
-                buildProperties = serializer.Deserialize<BuildProperty>(File.ReadAllText(filepath));
+                solutionFile = serializer.Deserialize<SolutionFile>(File.ReadAllText(arguments.Filepath));
             }
             catch (YamlException e)
             {
@@ -27,82 +27,32 @@ namespace CBuild
                 return;
             }
 
-            string command = GenerateCommand(buildProperties);
 
-            if (!Directory.Exists(buildProperties.OutputDir))
-                Directory.CreateDirectory(buildProperties.OutputDir);
+            if (string.IsNullOrWhiteSpace(arguments.Project))
+            {
+                Solution solution = new Solution();
+                foreach (ProjectInSolution project in solutionFile.Projects)
+                    solution.Add(serializer.Deserialize<Project>(File.ReadAllText(project.Filepath)));
 
-            Console.WriteLine(command);
-            CallCommand(command);
-            Console.WriteLine("Build Success!");
+                CBuild.BuildSolution(solution);
+            }
+            else
+            {
+                ProjectInSolution project = solutionFile.Projects.First(project => project.Name == arguments.Project); 
+                CBuild.BuildProject(serializer.Deserialize<Project>(File.ReadAllText(project.Filepath)));
+            }
+
         }
+    }
 
-        static void CallCommand(string command)
-        {
-            Process cmd = new Process();
-            cmd.StartInfo.FileName = "cmd.exe";
-            cmd.StartInfo.RedirectStandardInput = true;
-            cmd.StartInfo.RedirectStandardOutput = true;
-            cmd.StartInfo.UseShellExecute = false;
-            cmd.Start();
+    struct ProjectInSolution
+    {
+        public string Filepath { get; set; }
+        public string Name { get; set; }
+    }
 
-            cmd.StandardInput.WriteLine(command);
-            cmd.StandardInput.Flush();
-            cmd.StandardInput.Close();
-            cmd.WaitForExit();
-        }
-
-        static string GenerateCommand(BuildProperty properties)
-        {
-            string command = "gcc";
-
-            if (properties.CompilerWarnigns)
-                command += " -Wall";
-
-            // Std
-            if (!string.IsNullOrWhiteSpace(properties.Std))
-                command += $" -std={properties.Std}";
-
-            // Include directories
-            if (properties.IncludeDirs != null)
-            {
-                foreach (string includeDir in properties.IncludeDirs)
-                    command += $" -I {includeDir}";
-            }
-
-            // Library directories
-            if (properties.LibraryDirs != null)
-            {
-                foreach (string libraryDir in properties.LibraryDirs)
-                    command += $" -L {libraryDir}";
-            }
-
-            // Preprocessors
-            if (properties.Preprocessors != null)
-            {
-                foreach (string preprocessor in properties.Preprocessors)
-                    command += $" -D {preprocessor}";
-            }
-
-            // Optimization
-            if (!string.IsNullOrWhiteSpace(properties.OptimizationLevel))
-                command += $" -O{properties.OptimizationLevel}";
-
-            // Files
-            foreach (string file in properties.Files)
-                command += " " + file;
-            
-            // Dependencies
-            if (properties.Dependencies != null)
-            {
-                foreach (string dependency in properties.Dependencies)
-                    command += $" -l{dependency}";
-            }
-            
-            // Output
-            command += $" -o {properties.OutputDir}/{properties.ProjectName}.exe";
-
-            return command;
-        }
+    struct SolutionFile
+    {
+        public ProjectInSolution[] Projects { get; set; }
     }
 }
