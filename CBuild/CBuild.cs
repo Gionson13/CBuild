@@ -9,6 +9,8 @@ namespace CBuild
 {
     static class CBuild
     {
+        public static bool AsFile = false;
+
         public static void BuildSolution(Solution solution)
         {
             foreach (Project project in solution.Projects)
@@ -27,21 +29,35 @@ namespace CBuild
             if (!Directory.Exists(objectDir))
                 Directory.CreateDirectory(objectDir);
 
-            Compile(project);
 
             switch (project.OutputType)
             {
                 case "Application":
+                    Compile(project);
                     Link(project);
                     break;
                 case "StaticLibrary":
+                    Compile(project);
                     CreateStaticLibrary(project);
+                    break;
+                case "DynamicLibrary":
+                    CompileDynamic(project);
+                    CreateDynamicLibrary(project);
+                    break;
+                default:
+                    Console.WriteLine("Invalid output type");
                     break;
             }
         }
 
         public static void CallCommand(string command)
         {
+            if (AsFile)
+            {
+                File.AppendAllText("CBuild.bat", command + "\n");
+                return;
+            }
+
             Process cmd = new Process();
             cmd.StartInfo.FileName = "cmd.exe";
             cmd.StartInfo.RedirectStandardInput = true;
@@ -139,6 +155,104 @@ namespace CBuild
         {
             string command = GenerateBasicCommand("gcc", project);
 
+            command = GenerateLinkCommand(command, project);
+
+            // Output
+            string outputDir = ConvertFilepath(project.OutputDir, project);
+            command += $" -o {outputDir}/{project.ProjectName}.exe";
+
+            Console.WriteLine($"Linking -> {command}");
+
+            CallCommand(command);
+        }
+
+        public static void CreateStaticLibrary(Project project)
+        {
+            string outputDir = ConvertFilepath(project.OutputDir, project);
+            string command = $"ar rcs {outputDir}/{project.ProjectName}.lib";
+
+            // File
+            foreach (string file in project.Files)
+            {
+                if (!file.EndsWith(".c"))
+                    continue;
+
+                string filename = Path.GetFileNameWithoutExtension(file);
+                string objectDir = ConvertFilepath(project.ObjectDir, project);
+
+                command += $" {objectDir}/{filename}.o";
+            }
+
+            Console.WriteLine("Generating static library -> " + command);
+
+            CallCommand(command);
+        }
+
+        public static void CompileDynamic(Project project)
+        {
+            string command = GenerateBasicCommand("gcc -fPIC -c", project);
+
+            // Files
+            foreach (string file in project.Files)
+            {
+                if (!file.EndsWith(".c"))
+                    continue;
+
+                string objectDir = ConvertFilepath(project.ObjectDir, project);
+                string filename = Path.GetFileNameWithoutExtension(file);
+
+                Console.WriteLine($"Compiling {file} -> {filename}.o");
+                CallCommand($"{command} {file} -o {objectDir}/{filename}.o");
+            }
+        }
+
+        public static void CreateDynamicLibrary(Project project)
+        {
+            string outputDir = ConvertFilepath(project.OutputDir, project);
+            string command = GenerateBasicCommand("gcc -shared", project);
+            command = GenerateLinkCommand(command, project);
+
+            command += $" -o {outputDir}/{project.ProjectName}.dll";
+
+            Console.WriteLine("Generating dynamic library -> " + command);
+            CallCommand(command);
+        }
+
+        public static string GenerateBasicCommand(string start, Project project)
+        {
+            if (project.CompilerWarnigns)
+                start += " -Wall";
+
+            // Std
+            if (!string.IsNullOrWhiteSpace(project.Std))
+                start += $" -std={project.Std}";
+
+            // Include directories
+            if (project.IncludeDirs != null)
+            {
+                foreach (string includeDir in project.IncludeDirs)
+                {
+                    string includeDirectory = ConvertFilepath(includeDir, project);
+                    start += $" -I {includeDirectory}";
+                }
+            }
+
+            // Preprocessors
+            if (project.Preprocessors != null)
+            {
+                foreach (string preprocessor in project.Preprocessors)
+                    start += $" -D {preprocessor}";
+            }
+
+            // Optimization
+            if (!string.IsNullOrWhiteSpace(project.OptimizationLevel))
+                start += $" -O{project.OptimizationLevel}";
+
+            return start;
+        }
+
+        public static string GenerateLinkCommand(string command, Project project)
+        {
             List<Project> referenceProjects = new List<Project>();
             // Project References
             if (project.ProjectReferences != null)
@@ -150,6 +264,14 @@ namespace CBuild
                     Serializer serializer = new Serializer();
                     Project referenceProject = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
                     BuildProject(referenceProject);
+                    if (referenceProject.OutputType == "DynamicLibrary")
+                    {
+                        string inputFile = $"{ConvertFilepath(referenceProject.OutputDir, referenceProject)}/{referenceProject.ProjectName}.dll";
+                        string outputFile = $"{ConvertFilepath(project.OutputDir, project)}/{referenceProject.ProjectName}.dll";
+
+                        File.Copy(inputFile, outputFile, true);
+                    }
+
                     referenceProjects.Add(referenceProject);
 
                     command += $" -L {ConvertFilepath(referenceProject.OutputDir, referenceProject)}";
@@ -189,69 +311,7 @@ namespace CBuild
                     command += $" -l{dependency}";
             }
 
-            // Output
-            string outputDir = ConvertFilepath(project.OutputDir, project);
-            command += $" -o {outputDir}/{project.ProjectName}.exe";
-
-            Console.WriteLine($"Linking -> {command}");
-
-            CallCommand(command);
-        }
-
-        public static void CreateStaticLibrary(Project project)
-        {
-            string outputDir = ConvertFilepath(project.OutputDir, project);
-            string command = $"ar rcs {outputDir}/{project.ProjectName}.lib";
-
-            // File
-            foreach (string file in project.Files)
-            {
-                if (!file.EndsWith(".c"))
-                    continue;
-
-                string filename = Path.GetFileNameWithoutExtension(file);
-                string objectDir = ConvertFilepath(project.ObjectDir, project);
-
-                command += $" {objectDir}/{filename}.o";
-            }
-
-            Console.WriteLine("Generating static library -> " + command);
-
-            CallCommand(command);
-
-        }
-
-        public static string GenerateBasicCommand(string start, Project project)
-        {
-            if (project.CompilerWarnigns)
-                start += " -Wall";
-
-            // Std
-            if (!string.IsNullOrWhiteSpace(project.Std))
-                start += $" -std={project.Std}";
-
-            // Include directories
-            if (project.IncludeDirs != null)
-            {
-                foreach (string includeDir in project.IncludeDirs)
-                {
-                    string includeDirectory = ConvertFilepath(includeDir, project);
-                    start += $" -I {includeDirectory}";
-                }
-            }
-
-            // Preprocessors
-            if (project.Preprocessors != null)
-            {
-                foreach (string preprocessor in project.Preprocessors)
-                    start += $" -D {preprocessor}";
-            }
-
-            // Optimization
-            if (!string.IsNullOrWhiteSpace(project.OptimizationLevel))
-                start += $" -O{project.OptimizationLevel}";
-
-            return start;
+            return command;
         }
 
         public static string ConvertFilepath(string filepath, Project project)

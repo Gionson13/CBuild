@@ -45,7 +45,7 @@ You add every file you want to compile in Files and you're good to go.
 
 > All the filepath must be relative to the solution directory.
 
-The possible OutputType are `Application` and `StaticLibrary`.
+The possible OutputType are `Application`, `StaticLibrary` and `DynamicLibrary`.
 
 There are also other option: 
 
@@ -96,3 +96,4 @@ Set the std version. (default to latest)
 
 Then to build just type `CBuild solutionName.csln` in the command line to build all projects, if you want to build one specific type `CBuild solutionName.csln projectName`
 
+Type `CBuild --help` for more.
