@@ -32,7 +32,7 @@ namespace CBuild
 
             Compile(project);
 
-            switch (project.OutputType)
+            switch (project.CurrentConfiguration.OutputType)
             {
                 case "Application":
                     Link(project);
@@ -77,7 +77,7 @@ namespace CBuild
             string command = GenerateBasicCommand("gcc -c", project);
 
             // Dynamic Library
-            if (project.OutputType == "DynamicLibrary")
+            if (project.CurrentConfiguration.OutputType == "DynamicLibrary")
                 command += " -fPIC";
 
             // Files
@@ -97,7 +97,6 @@ namespace CBuild
         public static void Link(Project project)
         {
             string command = GenerateBasicCommand("gcc", project);
-
             command = GenerateLinkCommand(command, project);
 
             if (string.IsNullOrWhiteSpace(command))
@@ -152,12 +151,27 @@ namespace CBuild
 
         public static string GenerateBasicCommand(string start, Project project)
         {
-            if (project.CompilerWarnigns)
+            if (project.CurrentConfiguration.CompilerWarnigns)
                 start += " -Wall";
 
+            // Platform
+            switch (project.CurrentConfiguration.Platform)
+            {
+                case "x64":
+                    start += " -m64";
+                    break;
+                case "x32":
+                    start += " -m32";
+                    break;
+            }
+
+            // Configuration
+            if (project.CurrentConfiguration.Configuration == "Debug")
+                    start += " -g";
+
             // Std
-            if (!string.IsNullOrWhiteSpace(project.Std))
-                start += $" -std={project.Std}";
+            if (!string.IsNullOrWhiteSpace(project.CurrentConfiguration.Std))
+                start += $" -std={project.CurrentConfiguration.Std}";
 
             // Include directories
             if (project.IncludeDirs != null)
@@ -170,23 +184,28 @@ namespace CBuild
             }
 
             // Preprocessors
-            if (project.Preprocessors != null)
+            if (project.CurrentConfiguration.Preprocessors != null)
             {
-                foreach (string preprocessor in project.Preprocessors)
+                foreach (string preprocessor in project.CurrentConfiguration.Preprocessors)
                     start += $" -D {preprocessor}";
             }
 
             // Optimization
-            if (!string.IsNullOrWhiteSpace(project.OptimizationLevel))
-                start += $" -O{project.OptimizationLevel}";
+            if (!string.IsNullOrWhiteSpace(project.CurrentConfiguration.OptimizationLevel))
+                start += $" -O{project.CurrentConfiguration.OptimizationLevel}";
 
             return start;
         }
 
         public static string GenerateLinkCommand(string command, Project project)
         {
-            List<Project> referenceProjects = new List<Project>();
+
+            // Configuration
+            if (project.CurrentConfiguration.Configuration == "Release")
+                command += " -s";
+
             // Project References
+            List<Project> referenceProjects = new List<Project>();
             if (project.ProjectReferences != null)
             {
                 foreach (string projectRef in project.ProjectReferences)
@@ -211,6 +230,16 @@ namespace CBuild
                     {
                         referenceProject = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
                         referenceProject.Filepath = projectInSolution.Filepath;
+                        try
+                        {
+                        referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations.First(config =>
+                            config.Configuration == project.CurrentConfiguration.Configuration &&
+                            config.Platform == project.CurrentConfiguration.Platform);
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations[0];
+                        }
                     }
                     catch (YamlException e)
                     {
@@ -223,7 +252,7 @@ namespace CBuild
                     }
 
                     BuildProject(referenceProject);
-                    if (referenceProject.OutputType == "DynamicLibrary" && !AsFile)
+                    if (referenceProject.CurrentConfiguration.OutputType == "DynamicLibrary" && !AsFile)
                     {
                         string inputFile = $"{ConvertFilepath(referenceProject.OutputDir, referenceProject)}/{referenceProject.ProjectName}.dll";
                         string outputFile = $"{ConvertFilepath(project.OutputDir, project)}/{referenceProject.ProjectName}.dll";
@@ -275,7 +304,9 @@ namespace CBuild
 
         public static string ConvertFilepath(string filepath, Project project)
         {
-            string returnFilepath = filepath.Replace("$(ProjectName)", project.ProjectName);
+            string returnFilepath = filepath.Replace("$(ProjectName)", project.ProjectName)
+                                            .Replace("$(Configuration)", project.CurrentConfiguration.Configuration)
+                                            .Replace("$(Platform)", project.CurrentConfiguration.Platform);
             //                                             .Replace("$(SolutionDir)", project.SolutionDir);
             return returnFilepath;
         }

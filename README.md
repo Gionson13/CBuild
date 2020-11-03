@@ -37,9 +37,20 @@ If you look in projectName.cproj
 ProjectName: projectName
 OutputDir: bin
 ObjectDir: obj
-OutputType: Application
 Files:
   - filename.c
+ProjectConfigurations:
+  - Configuration: Release
+    Platform: x64
+    OutputType: Application
+    Preprocessors: null
+    Std: null
+    OptimizationLevel: null
+    CompilerWarnigns: true
+IncludeDirs: null
+LibraryDirs: null
+Dependencies: null
+ProjectReferences: null
 ```
 
 You add every file you want to compile in Files and you're good to go.
@@ -95,6 +106,13 @@ Std: c18
 ```
 Set the std version. (default to latest)
 
-Then to build just type `CBuild` in the command line to build all projects, if you want to build one specific type `CBuild projectName`
+Then to build just type `CBuild` in the command line to build all projects, if you want to build one specific type `CBuild projectName`, and you can specify the configuration by typing `CBuild projectName configuration`, configuration must be `Configuration/Platform` (e.g `Debug/x64`).
+
+There also are macros for directories:
+```yaml
+$(ProjectName) -> The name of the project
+$(Configuration) -> The current configuration (Debug / Release)
+$(Platform) -> The current platform (x64 / x32)
+```
 
 Type `CBuild --help` for more.

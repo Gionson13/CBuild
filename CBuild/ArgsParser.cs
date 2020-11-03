@@ -9,6 +9,7 @@ namespace CBuild
     {
         public string Filepath;
         public string Project;
+        public string ProjectConfiguration;
     }
 
 
@@ -20,7 +21,7 @@ namespace CBuild
 
             string[] cslnFiles = Directory.GetFiles(".", "*.csln");
 
-            if (cslnFiles.Length < 1)
+            if (cslnFiles.Length < 1 && !args[0].StartsWith("-"))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("ERROR ");
@@ -29,14 +30,21 @@ namespace CBuild
                 return returnArgs;
             }
 
-            returnArgs.Filepath = cslnFiles[0];
+            if (cslnFiles.Length > 0)
+                returnArgs.Filepath = cslnFiles[0];
 
             if (args.Length > 0)
             {
                 returnArgs.Project = Parse(args);
 
                 if (returnArgs.Project == null)
+                {
                     returnArgs.Filepath = null;
+                }
+
+                if (args.Length > 1)
+                    if (args[1].Contains('/'))
+                        returnArgs.ProjectConfiguration = args[1];
             }
 
             return returnArgs;
@@ -159,8 +167,12 @@ namespace CBuild
             project.ProjectName = projectName;
             project.OutputDir = "bin";
             project.ObjectDir = "obj";
-            project.OutputType = "Application";
             project.Files = new string[] { "filename.c" };
+            project.ProjectConfigurations = new ProjectConfiguration[]{
+                new ProjectConfiguration() {
+                    Configuration = "Release", Platform = "x64",
+                    OutputType = "Application"
+                }};
 
             SerializerSettings settings = new SerializerSettings() { EmitAlias = false, EmitTags = false };
             Serializer serializer = new Serializer(settings);

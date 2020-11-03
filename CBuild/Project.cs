@@ -11,9 +11,9 @@ namespace CBuild
         [YamlMember(2)]
         public string ObjectDir { get; set; }
         [YamlMember(3)]
-        public string OutputType { get; set; }
-        [YamlMember(4)]
         public string[] Files { get; set; }
+        [YamlMember(4)]
+        public ProjectConfiguration[] ProjectConfigurations { get; set; }
         [YamlMember(5)]
         public string[] IncludeDirs { get; set; }
         [YamlMember(6)]
@@ -22,18 +22,12 @@ namespace CBuild
         public string[] Dependencies { get; set; }
         [YamlMember(8)]
         public string[] ProjectReferences { get; set; }  
-        [YamlMember(9)]
-        public string[] Preprocessors { get; set; }
-        [YamlMember(10)]
-        public bool CompilerWarnigns { get; set; } = true;
-        [YamlMember(11)]
-        public string Std { get; set; }
-        [YamlMember(12)]
-        public string OptimizationLevel { get; set; }
 
         [YamlIgnore]
         public string SolutionDir { get; set; }
         [YamlIgnore]
         public string Filepath { get; set; }
+        [YamlIgnore]
+        public ProjectConfiguration CurrentConfiguration { get; set; }
     }
 }

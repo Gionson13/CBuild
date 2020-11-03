@@ -42,16 +42,43 @@ namespace CBuild
                 return;
             }
 
-            Console.WriteLine(arguments.Filepath);
+            string[] projectConfiguration = null;
+            if (!string.IsNullOrWhiteSpace(arguments.ProjectConfiguration))
+                projectConfiguration = arguments.ProjectConfiguration.Split('/');
 
             if (string.IsNullOrWhiteSpace(arguments.Project))
             {
                 Solution solution = new Solution();
                 foreach (ProjectInSolution project in solutionFile.Projects)
                 {
-                    Project toAdd = serializer.Deserialize<Project>(File.ReadAllText(project.Filepath));
-                    toAdd.Filepath = project.Filepath;
-                    solution.Add(toAdd);
+                    try
+                    {
+                        Project toAdd = serializer.Deserialize<Project>(File.ReadAllText(project.Filepath));
+                        toAdd.Filepath = project.Filepath;
+                        if (projectConfiguration != null)
+                            toAdd.CurrentConfiguration = toAdd.ProjectConfigurations.First(projectConfig =>
+                                projectConfig.Configuration == projectConfiguration[0] &&
+                                projectConfig.Platform == projectConfiguration[1]
+                            );
+                        else toAdd.CurrentConfiguration = toAdd.ProjectConfigurations[0];
+
+                        solution.Add(toAdd);
+                    }
+                    catch (YamlException e)
+                    {
+                        Console.WriteLine("Parsing failed! -> " + project.Filepath);
+                        Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
+                        return;
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        Console.WriteLine("Parsing failed! -> " + project.Filepath);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("ERROR ");
+                        Console.ResetColor();
+                        Console.WriteLine($"{e.HResult} -> Project Configuration not found");
+                        return;
+                    }
                 }
 
                 CBuild.BuildSolution(solution);
@@ -65,6 +92,12 @@ namespace CBuild
                 {
                     project = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
                     project.Filepath = projectInSolution.Filepath;
+                    if (projectConfiguration != null)
+                        project.CurrentConfiguration = project.ProjectConfigurations.First(projectConfig =>
+                            projectConfig.Configuration == projectConfiguration[0] &&
+                            projectConfig.Platform == projectConfiguration[1]
+                        );
+                    else project.CurrentConfiguration = project.ProjectConfigurations[0];
                 }
                 catch (YamlException e)
                 {
@@ -72,7 +105,16 @@ namespace CBuild
                     Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
                     return;
                 }
-                
+                catch (InvalidOperationException e)
+                {
+                    Console.WriteLine("Parsing failed! -> " + projectInSolution.Filepath);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR ");
+                    Console.ResetColor();
+                    Console.WriteLine($"{e.HResult} -> Project Configuration not found");
+                    return;
+                }
+
                 CBuild.BuildProject(project);
             }
 
