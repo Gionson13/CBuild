@@ -25,7 +25,8 @@ if you look in `solutionName.csln` you find this:
 
 ```yaml
 Projects: 
-  - { Name: solutionName, Filepath: projectName/projectName.cproj }
+  - Name: solutionName
+    Filepath: projectName/projectName.cproj
 ```
 
 By following this structure you can add as many projects as you want, or you can use `CBuild --add projectName` to add a new project automatically.
@@ -34,11 +35,11 @@ If you look in projectName.cproj
 
 ```yaml
 ProjectName: projectName
-Files:
-  - filename.c
 OutputDir: bin
 ObjectDir: obj
 OutputType: Application
+Files:
+  - filename.c
 ```
 
 You add every file you want to compile in Files and you're good to go.
@@ -90,7 +91,7 @@ CompilerWarnigns: true
 Shows the compiler's warnings if true. (default to true)
 
 ```yaml
-Std: c11
+Std: c18
 ```
 Set the std version. (default to latest)
 

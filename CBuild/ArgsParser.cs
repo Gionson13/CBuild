@@ -1,7 +1,7 @@
-﻿using CBuild.Properties;
+﻿using SharpYaml.Serialization;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace CBuild
 {
@@ -72,15 +72,8 @@ namespace CBuild
                     case "--help":
                         PrintHelpGenerate();
                         break;
-                    case "-f":
-                    case "--full":
-                        if (args.Length > 2)
-                            GenerateSolution(args[2], true);
-                        else
-                            Console.WriteLine("Missing arguments.");
-                        break;
                     default:
-                        GenerateSolution(args[1], false);
+                        GenerateSolution(args[1]);
                         break;
                 }
             }
@@ -93,15 +86,8 @@ namespace CBuild
                     case "--help":
                         PrintHelpAdd();
                         break;
-                    case "-f":
-                    case "--full":
-                        if (args.Length > 2)
-                            AddProject(args[2], true);
-                        else
-                            Console.WriteLine("Missing arguments.");
-                        break;
                     default:
-                        AddProject(args[1], false);
+                        AddProject(args[1]);
                         break;
                 }
             }
@@ -109,40 +95,56 @@ namespace CBuild
             return returnArgs;
         }
 
-        private static void GenerateSolution(string solutionName, bool full)
+        private static void GenerateSolution(string solutionName)
         {
             Directory.CreateDirectory(solutionName);
-            GenerateFile($"{solutionName}/{solutionName}.cproj", solutionName, full);
+            GenerateFile($"{solutionName}/{solutionName}.cproj", solutionName);
 
-            string solutionContent = Encoding.Default.GetString(Resources.solution).Replace("$(ProjectName)", solutionName);
-            
-            File.WriteAllText($"{solutionName}.csln", solutionContent);
+            SolutionFile solutionFile = new SolutionFile();
+            solutionFile.Projects = new List<ProjectInSolution>(){
+                new ProjectInSolution() { Name = solutionName, Filepath = $"{solutionName}/{solutionName}.cproj" }
+            };
+
+            SerializerSettings settings = new SerializerSettings() { EmitAlias = false, EmitTags = false };
+            Serializer serializer = new Serializer(settings);
+            File.WriteAllText($"{solutionName}.csln", serializer.Serialize(solutionFile));
 
             Console.WriteLine("Solution generated successfully.");
         }
 
-        private static void AddProject(string projectName, bool full)
+        private static void AddProject(string projectName)
         {
             Directory.CreateDirectory(projectName);
-            GenerateFile($"{projectName}/{projectName}.cproj", projectName, full);
+            GenerateFile($"{projectName}/{projectName}.cproj", projectName);
 
-            string solutionFile = Directory.GetFiles(".", "*.csln")[0];
-            string solutionContent = $"\n  - {{ Name: {projectName}, Filepath: {projectName}/{projectName}.cproj }}";
+            string solutionFilepath = Directory.GetFiles(".", "*.csln")[0];
 
-            File.AppendAllText(solutionFile, solutionContent);
+            SerializerSettings settings = new SerializerSettings() { EmitAlias = false, EmitTags = false };
+            Serializer serializer = new Serializer(settings);
+
+            SolutionFile solutionFile = serializer.Deserialize<SolutionFile>(File.ReadAllText(solutionFilepath));
+            solutionFile.Projects.Add(new ProjectInSolution() {
+                Filepath = $"{projectName}/{projectName}.cproj",
+                Name = projectName
+            });
+
+            File.WriteAllText(solutionFilepath, serializer.Serialize(solutionFile));
+
+            Console.WriteLine("Project added successfully.");
         }
 
-        private static void GenerateFile(string filepath, string projectName, bool full)
+        private static void GenerateFile(string filepath, string projectName)
         {
-            string fileContent;
-            if (full)
-                fileContent = Encoding.Default.GetString(Resources.CBuild_full);
-            else
-                fileContent = Encoding.Default.GetString(Resources.CBuild);
+            Project project = new Project();
+            project.ProjectName = projectName;
+            project.OutputDir = "bin";
+            project.ObjectDir = "obj";
+            project.OutputType = "Application";
+            project.Files = new string[] { "filename.c" };
 
-            fileContent = fileContent.Replace("$(ProjectName)", projectName);
-
-            File.WriteAllText(filepath, fileContent);
+            SerializerSettings settings = new SerializerSettings() { EmitAlias = false, EmitTags = false };
+            Serializer serializer = new Serializer(settings);
+            File.WriteAllText(filepath, serializer.Serialize(project));
 
             Console.WriteLine("CBuild file generated successfully.");
         }
@@ -165,7 +167,6 @@ namespace CBuild
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine("-h, --help:      shows this page");
-            Console.WriteLine("-f, --full:      Generates a full cproj file");
         }
 
         private static void PrintHelpAdd()
@@ -174,7 +175,6 @@ namespace CBuild
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine("-h, --help:      shows this page");
-            Console.WriteLine("-f, --full:      Generates a full cproj file");
         }
     }
 }

@@ -1,6 +1,0 @@
-ProjectName: $(ProjectName)
-Files:
-  - filename.c
-OutputDir: bin
-ObjectDir: obj
-OutputType: Application

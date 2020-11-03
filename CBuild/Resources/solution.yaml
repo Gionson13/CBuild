@@ -1,2 +1,0 @@
-﻿Projects: 
-  - { Name: $(ProjectName), Filepath: $(ProjectName)/$(ProjectName).cproj }

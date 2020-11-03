@@ -1,6 +1,7 @@
 ﻿using SharpYaml;
 using SharpYaml.Serialization;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -79,12 +80,14 @@ namespace CBuild
 
     struct ProjectInSolution
     {
-        public string Filepath { get; set; }
+        [YamlMember(0)]
         public string Name { get; set; }
+        [YamlMember(1)]
+        public string Filepath { get; set; }
     }
 
     struct SolutionFile
     {
-        public ProjectInSolution[] Projects { get; set; }
+        public List<ProjectInSolution> Projects { get; set; }
     }
 }
