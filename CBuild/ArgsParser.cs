@@ -11,17 +11,40 @@ namespace CBuild
         public string Project;
     }
 
+
     static class ArgsParser
     {
         public static Args Get(string[] args)
         {
             Args returnArgs = new Args();
 
-            if (args.Length < 1)
+            string[] cslnFiles = Directory.GetFiles(".", "*.csln");
+
+            if (cslnFiles.Length < 1)
             {
-                Console.WriteLine("Missing arguments.");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR ");
+                Console.ResetColor();
+                Console.WriteLine($"{new FileNotFoundException().HResult} -> The solution file could not be found.");
                 return returnArgs;
             }
+
+            returnArgs.Filepath = cslnFiles[0];
+
+            if (args.Length > 0)
+            {
+                returnArgs.Project = Parse(args);
+
+                if (returnArgs.Project == null)
+                    returnArgs.Filepath = null;
+            }
+
+            return returnArgs;
+        }
+
+        private static string Parse(string[] args)
+        {
+            string project = "";
 
             bool switchGenerate = false;
             bool switchAdd = false;
@@ -31,13 +54,14 @@ namespace CBuild
                 case "-h":
                 case "--help":
                     PrintHelp();
-                    break;
+                    return null;
                 case "-g":
                 case "--generate":
                     if (args.Length > 1)
                         switchGenerate = true;
                     else
                         Console.WriteLine("Missing arguments.");
+                    project = null;
                     break;
                 case "-a":
                 case "--add":
@@ -45,22 +69,17 @@ namespace CBuild
                         switchAdd = true;
                     else
                         Console.WriteLine("Missing arguments.");
+                    project = null;
                     break;
                 case "--as-file":
+                    CBuild.AsFile = true;
                     if (args.Length > 1)
-                    {
-                        CBuild.AsFile = true;
-                        returnArgs.Filepath = args[1];
-                        if (args.Length > 2)
-                            returnArgs.Project = args[2];
-                    }
+                        project = args[1];
                     else
-                        Console.WriteLine("Missing arguments.");
+                        project = "";
                     break;
                 default:
-                    returnArgs.Filepath = args[0];
-                    if (args.Length > 1)
-                        returnArgs.Project = args[1];
+                    project = args[0];
                     break;
             }
 
@@ -92,7 +111,7 @@ namespace CBuild
                 }
             }
 
-            return returnArgs;
+            return project;
         }
 
         private static void GenerateSolution(string solutionName)
@@ -123,7 +142,8 @@ namespace CBuild
             Serializer serializer = new Serializer(settings);
 
             SolutionFile solutionFile = serializer.Deserialize<SolutionFile>(File.ReadAllText(solutionFilepath));
-            solutionFile.Projects.Add(new ProjectInSolution() {
+            solutionFile.Projects.Add(new ProjectInSolution()
+            {
                 Filepath = $"{projectName}/{projectName}.cproj",
                 Name = projectName
             });
@@ -151,7 +171,7 @@ namespace CBuild
 
         private static void PrintHelp()
         {
-            Console.WriteLine("usage:           CBuild filepath");
+            Console.WriteLine("usage:           CBuild");
             Console.WriteLine("                 CBuild [options]");
             Console.WriteLine();
             Console.WriteLine();
@@ -163,7 +183,8 @@ namespace CBuild
 
         private static void PrintHelpGenerate()
         {
-            Console.WriteLine("usage:           CBuild --generate [options] solutionName");
+            Console.WriteLine("usage:           CBuild --generate solutionName");
+            Console.WriteLine("                 CBuild --generate [options]");
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine("-h, --help:      shows this page");
@@ -171,7 +192,8 @@ namespace CBuild
 
         private static void PrintHelpAdd()
         {
-            Console.WriteLine("usage:           CBuild --add [options] projectName");
+            Console.WriteLine("usage:           CBuild --add projectName");
+            Console.WriteLine("                 CBuild --add [options]");
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine("-h, --help:      shows this page");

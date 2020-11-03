@@ -42,6 +42,7 @@ namespace CBuild
                 return;
             }
 
+            Console.WriteLine(arguments.Filepath);
 
             if (string.IsNullOrWhiteSpace(arguments.Project))
             {

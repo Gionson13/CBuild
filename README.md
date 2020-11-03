@@ -95,6 +95,6 @@ Std: c18
 ```
 Set the std version. (default to latest)
 
-Then to build just type `CBuild solutionName.csln` in the command line to build all projects, if you want to build one specific type `CBuild solutionName.csln projectName`
+Then to build just type `CBuild` in the command line to build all projects, if you want to build one specific type `CBuild projectName`
 
 Type `CBuild --help` for more.

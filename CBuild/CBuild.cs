@@ -223,7 +223,7 @@ namespace CBuild
                     }
 
                     BuildProject(referenceProject);
-                    if (referenceProject.OutputType == "DynamicLibrary")
+                    if (referenceProject.OutputType == "DynamicLibrary" && !AsFile)
                     {
                         string inputFile = $"{ConvertFilepath(referenceProject.OutputDir, referenceProject)}/{referenceProject.ProjectName}.dll";
                         string outputFile = $"{ConvertFilepath(project.OutputDir, project)}/{referenceProject.ProjectName}.dll";
