@@ -115,6 +115,7 @@ namespace CBuild
             GenerateFile($"{solutionName}/{solutionName}.cproj", solutionName, full);
 
             string solutionContent = Encoding.Default.GetString(Resources.solution).Replace("$(ProjectName)", solutionName);
+            
             File.WriteAllText($"{solutionName}.csln", solutionContent);
 
             Console.WriteLine("Solution generated successfully.");
@@ -126,11 +127,9 @@ namespace CBuild
             GenerateFile($"{projectName}/{projectName}.cproj", projectName, full);
 
             string solutionFile = Directory.GetFiles(".", "*.csln")[0];
-            string solutionContent = File.ReadAllText(solutionFile);
+            string solutionContent = $"\n  - {{ Name: {projectName}, Filepath: {projectName}/{projectName}.cproj }}";
 
-            solutionContent += $"\n\t- {{ Name: {projectName}, Filepath: {projectName}/{projectName}.cproj }}";
-
-            File.WriteAllText(solutionFile, solutionContent);
+            File.AppendAllText(solutionFile, solutionContent);
         }
 
         private static void GenerateFile(string filepath, string projectName, bool full)

@@ -1,4 +1,6 @@
-﻿namespace CBuild
+﻿using SharpYaml.Serialization;
+
+namespace CBuild
 {
     class Project
     {
@@ -16,5 +18,8 @@
         public string OptimizationLevel { get; set; }
         public bool CompilerWarnigns { get; set; } = true;
         public string SolutionDir { get; set; }
+
+        [YamlIgnore]
+        public string Filepath { get; set; }
     }
 }

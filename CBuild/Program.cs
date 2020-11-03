@@ -16,6 +16,16 @@ namespace CBuild
 
             if (string.IsNullOrWhiteSpace(arguments.Filepath)) return;
 
+            if (!File.Exists(arguments.Filepath))
+            {
+                Console.WriteLine("Parsing failed! -> " + arguments.Filepath);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR ");
+                Console.ResetColor();
+                Console.WriteLine($"{new FileNotFoundException().HResult} -> {new FileNotFoundException().Message}");
+                return;
+            }
+
             var serializer = new Serializer();
             try
             {
@@ -24,7 +34,10 @@ namespace CBuild
             catch (YamlException e)
             {
                 Console.WriteLine("Parsing failed! -> " + arguments.Filepath);
-                Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR ");
+                Console.ResetColor();
+                Console.WriteLine($"{e.HResult} -> {e.Message}");
                 return;
             }
 
@@ -33,14 +46,32 @@ namespace CBuild
             {
                 Solution solution = new Solution();
                 foreach (ProjectInSolution project in solutionFile.Projects)
-                    solution.Add(serializer.Deserialize<Project>(File.ReadAllText(project.Filepath)));
+                {
+                    Project toAdd = serializer.Deserialize<Project>(File.ReadAllText(project.Filepath));
+                    toAdd.Filepath = project.Filepath;
+                    solution.Add(toAdd);
+                }
 
                 CBuild.BuildSolution(solution);
             }
             else
             {
-                ProjectInSolution project = solutionFile.Projects.First(project => project.Name == arguments.Project); 
-                CBuild.BuildProject(serializer.Deserialize<Project>(File.ReadAllText(project.Filepath)));
+                ProjectInSolution projectInSolution = solutionFile.Projects.First(project => project.Name == arguments.Project);
+                Project project;
+
+                try
+                {
+                    project = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
+                    project.Filepath = projectInSolution.Filepath;
+                }
+                catch (YamlException e)
+                {
+                    Console.WriteLine("Parsing failed! -> " + projectInSolution.Filepath);
+                    Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
+                    return;
+                }
+                
+                CBuild.BuildProject(project);
             }
 
         }

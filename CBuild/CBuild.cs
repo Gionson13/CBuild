@@ -1,4 +1,5 @@
-﻿using SharpYaml.Serialization;
+﻿using SharpYaml;
+using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,19 +30,17 @@ namespace CBuild
             if (!Directory.Exists(objectDir))
                 Directory.CreateDirectory(objectDir);
 
+            Compile(project);
 
             switch (project.OutputType)
             {
                 case "Application":
-                    Compile(project);
                     Link(project);
                     break;
                 case "StaticLibrary":
-                    Compile(project);
                     CreateStaticLibrary(project);
                     break;
                 case "DynamicLibrary":
-                    CompileDynamic(project);
                     CreateDynamicLibrary(project);
                     break;
                 default:
@@ -73,69 +72,13 @@ namespace CBuild
             Console.WriteLine(new string('-', Console.BufferWidth));
         }
 
-        //         public static string GenerateCommand(Project project)
-        //         {
-        //             string command = "gcc";
-        // 
-        //             if (project.CompilerWarnigns)
-        //                 command += " -Wall";
-        // 
-        //             // Std
-        //             if (!string.IsNullOrWhiteSpace(project.Std))
-        //                 command += $" -std={project.Std}";
-        // 
-        //             // Include directories
-        //             if (project.IncludeDirs != null)
-        //             {
-        //                 foreach (string includeDir in project.IncludeDirs)
-        //                 {
-        //                     string includeDirectory = ConvertFilepath(includeDir, project);
-        //                     command += $" -I {includeDirectory}";
-        //                 }
-        //             }
-        // 
-        //             // Library directories
-        //             if (project.LibraryDirs != null)
-        //             {
-        //                 foreach (string libraryDir in project.LibraryDirs)
-        //                 {
-        //                     string libraryDirectory = ConvertFilepath(libraryDir, project);
-        //                     command += $" -L {libraryDirectory}";
-        //                 }
-        //             }
-        // 
-        //             // Preprocessors
-        //             if (project.Preprocessors != null)
-        //             {
-        //                 foreach (string preprocessor in project.Preprocessors)
-        //                     command += $" -D {preprocessor}";
-        //             }
-        // 
-        //             // Optimization
-        //             if (!string.IsNullOrWhiteSpace(project.OptimizationLevel))
-        //                 command += $" -O{project.OptimizationLevel}";
-        // 
-        //             // Files
-        //             foreach (string file in project.Files)
-        //                 command += " " + file;
-        // 
-        //             // Dependencies
-        //             if (project.Dependencies != null)
-        //             {
-        //                 foreach (string dependency in project.Dependencies)
-        //                     command += $" -l{dependency}";
-        //             }
-        // 
-        //             // Output
-        //             string outputDir = ConvertFilepath(project.OutputDir, project);
-        //             command += $" -o {outputDir}/{project.ProjectName}.exe";
-        // 
-        //             return command;
-        //         }
-
         public static void Compile(Project project)
         {
             string command = GenerateBasicCommand("gcc -c", project);
+
+            // Dynamic Library
+            if (project.OutputType == "DynamicLibrary")
+                command += " -fPIC";
 
             // Files
             foreach (string file in project.Files)
@@ -157,6 +100,9 @@ namespace CBuild
 
             command = GenerateLinkCommand(command, project);
 
+            if (string.IsNullOrWhiteSpace(command))
+                return;
+            
             // Output
             string outputDir = ConvertFilepath(project.OutputDir, project);
             command += $" -o {outputDir}/{project.ProjectName}.exe";
@@ -170,6 +116,7 @@ namespace CBuild
         {
             string outputDir = ConvertFilepath(project.OutputDir, project);
             string command = $"ar rcs {outputDir}/{project.ProjectName}.lib";
+
 
             // File
             foreach (string file in project.Files)
@@ -188,29 +135,14 @@ namespace CBuild
             CallCommand(command);
         }
 
-        public static void CompileDynamic(Project project)
-        {
-            string command = GenerateBasicCommand("gcc -fPIC -c", project);
-
-            // Files
-            foreach (string file in project.Files)
-            {
-                if (!file.EndsWith(".c"))
-                    continue;
-
-                string objectDir = ConvertFilepath(project.ObjectDir, project);
-                string filename = Path.GetFileNameWithoutExtension(file);
-
-                Console.WriteLine($"Compiling {file} -> {filename}.o");
-                CallCommand($"{command} {file} -o {objectDir}/{filename}.o");
-            }
-        }
-
         public static void CreateDynamicLibrary(Project project)
         {
             string outputDir = ConvertFilepath(project.OutputDir, project);
             string command = GenerateBasicCommand("gcc -shared", project);
             command = GenerateLinkCommand(command, project);
+
+            if (string.IsNullOrWhiteSpace(command))
+                return;
 
             command += $" -o {outputDir}/{project.ProjectName}.dll";
 
@@ -259,10 +191,37 @@ namespace CBuild
             {
                 foreach (string projectRef in project.ProjectReferences)
                 {
-                    ProjectInSolution projectInSolution = Program.solutionFile.Projects.First(project => project.Name == projectRef);
-
+                    ProjectInSolution projectInSolution;
+                    try
+                    {
+                        projectInSolution = Program.solutionFile.Projects.First(project => project.Name == projectRef);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        Console.WriteLine("Linking failed! -> " +  project.Filepath);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("ERROR ");
+                        Console.ResetColor();
+                        Console.WriteLine($"{e.HResult} -> Project Reference not found");
+                        return "";
+                    }
                     Serializer serializer = new Serializer();
-                    Project referenceProject = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
+                    Project referenceProject;
+                    try
+                    {
+                        referenceProject = serializer.Deserialize<Project>(File.ReadAllText(projectInSolution.Filepath));
+                        referenceProject.Filepath = projectInSolution.Filepath;
+                    }
+                    catch (YamlException e)
+                    {
+                        Console.WriteLine("Parsing failed! -> " + projectInSolution.Filepath);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("ERROR ");
+                        Console.ResetColor();
+                        Console.WriteLine($"{e.HResult} -> {e.Message}");
+                        return "";
+                    }
+
                     BuildProject(referenceProject);
                     if (referenceProject.OutputType == "DynamicLibrary")
                     {
