@@ -2,15 +2,14 @@
 using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace CBuild
 {
-    static class CBuild
+    static class CppBuild
     {
-
         public static void BuildProject(Project project)
         {
             Compile(project);
@@ -32,18 +31,19 @@ namespace CBuild
             }
         }
 
-        public static void Compile(Project project)
+        private static void Compile(Project project)
         {
-            string command = GenerateBasicCommand("gcc -c", project);
+            string command = GenerateBasicCommand("g++ -c", project);
 
             // Dynamic Library
             if (project.CurrentConfiguration.OutputType == "DynamicLibrary")
                 command += " -fPIC";
 
+
             // Files
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".cpp"))
                     continue;
 
                 string filename = Path.GetFileNameWithoutExtension(file);
@@ -53,11 +53,11 @@ namespace CBuild
             }
         }
 
-        public static void Link(Project project)
+        private static void Link(Project project)
         {
-            string command = GenerateBasicCommand("gcc", project);
+            string command = GenerateBasicCommand("g++", project);
             command = GenerateLinkCommand(command, project);
-            
+
             // Output
             command += $" -o {project.OutputDir}/{project.ProjectName}.exe";
 
@@ -73,7 +73,7 @@ namespace CBuild
             // File
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".cpp"))
                     continue;
 
                 string filename = Path.GetFileNameWithoutExtension(file);
@@ -88,11 +88,8 @@ namespace CBuild
 
         public static void CreateDynamicLibrary(Project project)
         {
-            string command = GenerateBasicCommand("gcc -shared", project);
+            string command = GenerateBasicCommand("g++ -shared", project);
             command = GenerateLinkCommand(command, project);
-
-            if (string.IsNullOrWhiteSpace(command))
-                return;
 
             command += $" -o {project.OutputDir}/{project.ProjectName}.dll";
 
@@ -100,52 +97,50 @@ namespace CBuild
             Builder.CallCommand(command);
         }
 
-        public static string GenerateBasicCommand(string start, Project project)
+        private static string GenerateBasicCommand(string command, Project project)
         {
             if (project.CurrentConfiguration.CompilerWarnigns)
-                start += " -Wall";
+                command += " -Wall";
 
             // Platform
             switch (project.CurrentConfiguration.Platform)
             {
                 case "x64":
-                    start += " -m64";
+                    command += " -m64";
                     break;
                 case "x32":
-                    start += " -m32";
+                    command += " -m32";
                     break;
             }
 
             // Configuration
             if (project.CurrentConfiguration.Configuration == "Debug")
-                    start += " -g";
+                command += " -g";
 
             // Std
             if (!string.IsNullOrWhiteSpace(project.CurrentConfiguration.Std))
-                start += $" -std={project.CurrentConfiguration.Std}";
+                command += $" -std={project.CurrentConfiguration.Std}";
+
 
             // Include directories
             if (project.IncludeDirs != null)
                 foreach (string includeDir in project.IncludeDirs)
-                    start += $" -I {includeDir}";
+                    command += $" -I {includeDir}";
 
             // Preprocessors
             if (project.CurrentConfiguration.Preprocessors != null)
-            {
                 foreach (string preprocessor in project.CurrentConfiguration.Preprocessors)
-                    start += $" -D {preprocessor}";
-            }
+                    command += $" -D {preprocessor}";
 
             // Optimization
             if (!string.IsNullOrWhiteSpace(project.CurrentConfiguration.OptimizationLevel))
-                start += $" -O{project.CurrentConfiguration.OptimizationLevel}";
+                command += $" -O{project.CurrentConfiguration.OptimizationLevel}";
 
-            return start;
+            return command;
         }
 
-        public static string GenerateLinkCommand(string command, Project project)
+        private static string GenerateLinkCommand(string command, Project project)
         {
-
             // Configuration
             if (project.CurrentConfiguration.Configuration == "Release")
                 command += " -s";
@@ -163,7 +158,7 @@ namespace CBuild
                     }
                     catch (InvalidOperationException e)
                     {
-                        Console.WriteLine("Linking failed! -> " +  project.Filepath);
+                        Console.WriteLine("Linking failed! -> " + project.Filepath);
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("ERROR ");
                         Console.ResetColor();
@@ -178,9 +173,9 @@ namespace CBuild
                         referenceProject.Filepath = projectInSolution.Filepath;
                         try
                         {
-                        referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations.First(config =>
-                            config.Configuration == project.CurrentConfiguration.Configuration &&
-                            config.Platform == project.CurrentConfiguration.Platform);
+                            referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations.First(config =>
+                                config.Configuration == project.CurrentConfiguration.Configuration &&
+                                config.Platform == project.CurrentConfiguration.Platform);
                         }
                         catch (InvalidOperationException)
                         {
@@ -220,7 +215,7 @@ namespace CBuild
             // Files
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".cpp"))
                     continue;
 
                 string filename = Path.GetFileNameWithoutExtension(file);
@@ -240,5 +235,6 @@ namespace CBuild
 
             return command;
         }
+
     }
 }

@@ -81,7 +81,7 @@ namespace CBuild
                     }
                 }
 
-                CBuild.BuildSolution(solution);
+                Builder.BuildSolution(solution);
             }
             else
             {
@@ -115,7 +115,7 @@ namespace CBuild
                     return;
                 }
 
-                CBuild.BuildProject(project);
+                Builder.BuildProject(project);
             }
 
         }

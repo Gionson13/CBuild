@@ -3,8 +3,7 @@
 Requirements
 ------------
 
-- GCC compiler
-- ar (Archiver - comes with mingw)
+- MingGW
 - Windows
 
 Build C code

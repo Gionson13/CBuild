@@ -11,16 +11,18 @@ namespace CBuild
         [YamlMember(2)]
         public string ObjectDir { get; set; }
         [YamlMember(3)]
-        public string[] Files { get; set; }
+        public string Language { get; set; }
         [YamlMember(4)]
-        public ProjectConfiguration[] ProjectConfigurations { get; set; }
+        public string[] Files { get; set; }
         [YamlMember(5)]
-        public string[] IncludeDirs { get; set; }
+        public ProjectConfiguration[] ProjectConfigurations { get; set; }
         [YamlMember(6)]
-        public string[] LibraryDirs { get; set; }
+        public string[] IncludeDirs { get; set; }
         [YamlMember(7)]
-        public string[] Dependencies { get; set; }
+        public string[] LibraryDirs { get; set; }
         [YamlMember(8)]
+        public string[] Dependencies { get; set; }
+        [YamlMember(9)]
         public string[] ProjectReferences { get; set; }  
 
         [YamlIgnore]

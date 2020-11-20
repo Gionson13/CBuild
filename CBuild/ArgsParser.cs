@@ -21,7 +21,7 @@ namespace CBuild
 
             string[] cslnFiles = Directory.GetFiles(".", "*.csln");
 
-            if (cslnFiles.Length < 1 && !args[0].StartsWith("-"))
+            if (cslnFiles.Length < 1 && args.Length > 0 && !args[0].StartsWith("-"))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("ERROR ");
@@ -80,7 +80,7 @@ namespace CBuild
                     project = null;
                     break;
                 case "--as-file":
-                    CBuild.AsFile = true;
+                    Builder.AsFile = true;
                     if (args.Length > 1)
                         project = args[1];
                     else
@@ -167,6 +167,7 @@ namespace CBuild
             project.ProjectName = projectName;
             project.OutputDir = "bin";
             project.ObjectDir = "obj";
+            project.Language = "C";
             project.Files = new string[] { "filename.c" };
             project.ProjectConfigurations = new ProjectConfiguration[]{
                 new ProjectConfiguration() {
