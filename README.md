@@ -36,6 +36,7 @@ If you look in projectName.cproj
 ProjectName: projectName
 OutputDir: bin
 ObjectDir: obj
+Language: C
 Files:
   - filename.c
 ProjectConfigurations:
@@ -57,6 +58,7 @@ You add every file you want to compile in Files and you're good to go.
 > All the filepath must be relative to the solution directory.
 
 The possible OutputType are `Application`, `StaticLibrary` and `DynamicLibrary`.
+And the supported languages are `C` and `Cpp`. 
 
 There are also other option: 
 

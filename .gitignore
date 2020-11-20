@@ -1,3 +1,5 @@
 /.vs
-CBuild/bin
-CBuild/obj
+CBuild.Core/bin
+CBuild.Core/obj
+CBuild.CommandLine/bin
+CBuild.CommandLine/obj

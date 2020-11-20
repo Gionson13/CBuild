@@ -1,9 +1,0 @@
-C:\Dev\c#\CBuild\CBuild.Core\bin\Debug\netcoreapp3.1\CBuild.Core.deps.json
-C:\Dev\c#\CBuild\CBuild.Core\bin\Debug\netcoreapp3.1\CBuild.Core.dll
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.csprojAssemblyReference.cache
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.AssemblyInfoInputs.cache
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.AssemblyInfo.cs
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.csproj.CoreCompileInputs.cache
-C:\Dev\c#\CBuild\CBuild.Core\bin\Debug\netcoreapp3.1\CBuild.Core.pdb
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.dll
-C:\Dev\c#\CBuild\CBuild.Core\obj\Debug\netcoreapp3.1\CBuild.Core.pdb
