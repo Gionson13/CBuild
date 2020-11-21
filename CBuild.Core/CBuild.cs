@@ -1,8 +1,6 @@
 ﻿using SharpYaml;
-using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -10,7 +8,6 @@ namespace CBuild.Core
 {
     static class CBuild
     {
-
         public static void BuildProject(Project project)
         {
             Compile(project);
@@ -30,6 +27,8 @@ namespace CBuild.Core
                     Console.WriteLine("Invalid output type");
                     break;
             }
+
+            Builder.CopyContent(project);
         }
 
         public static void Compile(Project project)
@@ -46,10 +45,11 @@ namespace CBuild.Core
                 if (!file.EndsWith(".c"))
                     continue;
 
+                string filepath = $"{Path.GetDirectoryName(project.Filepath)}/{file}";
                 string filename = Path.GetFileNameWithoutExtension(file);
 
                 Console.WriteLine($"Compiling {file} -> {filename}.o");
-                Builder.CallCommand($"{command} {file} -o {project.ObjectDir}/{filename}.o");
+                Builder.CallCommand($"{command} {filepath} -o {project.ObjectDir}/{filename}.o");
             }
         }
 
@@ -57,7 +57,7 @@ namespace CBuild.Core
         {
             string command = GenerateBasicCommand("gcc", project);
             command = GenerateLinkCommand(command, project);
-            
+
             // Output
             command += $" -o {project.OutputDir}/{project.ProjectName}.exe";
 
@@ -118,7 +118,7 @@ namespace CBuild.Core
 
             // Configuration
             if (project.CurrentConfiguration.Configuration == "Debug")
-                    start += " -g";
+                start += " -g";
 
             // Std
             if (!string.IsNullOrWhiteSpace(project.CurrentConfiguration.Std))
@@ -163,7 +163,7 @@ namespace CBuild.Core
                     }
                     catch (InvalidOperationException e)
                     {
-                        Console.WriteLine("Linking failed! -> " +  project.Filepath);
+                        Console.WriteLine("Linking failed! -> " + project.Filepath);
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("ERROR ");
                         Console.ResetColor();
@@ -177,9 +177,9 @@ namespace CBuild.Core
                         referenceProject = serializer.DeserializeProject(projectInSolution.Filepath);
                         try
                         {
-                        referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations.First(config =>
-                            config.Configuration == project.CurrentConfiguration.Configuration &&
-                            config.Platform == project.CurrentConfiguration.Platform);
+                            referenceProject.CurrentConfiguration = referenceProject.ProjectConfigurations.First(config =>
+                                config.Configuration == project.CurrentConfiguration.Configuration &&
+                                config.Platform == project.CurrentConfiguration.Platform);
                         }
                         catch (InvalidOperationException)
                         {

@@ -1,10 +1,8 @@
 ﻿using SharpYaml;
-using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace CBuild.Core
 {
@@ -46,10 +44,11 @@ namespace CBuild.Core
                 if (!file.EndsWith(".cpp"))
                     continue;
 
+                string filepath = $"{Path.GetDirectoryName(project.Filepath)}/{file}";
                 string filename = Path.GetFileNameWithoutExtension(file);
 
                 Console.WriteLine($"Compiling {file} -> {filename}.o");
-                Builder.CallCommand($"{command} {file} -o {project.ObjectDir}/{filename}.o");
+                Builder.CallCommand($"{command} {filepath} -o {project.ObjectDir}/{filename}.o");
             }
         }
 

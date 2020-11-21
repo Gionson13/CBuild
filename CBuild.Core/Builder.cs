@@ -67,6 +67,21 @@ namespace CBuild.Core
             Console.WriteLine(new string('-', Console.BufferWidth));
         }
 
+        public static void CopyContent(Project project)
+        {
+            foreach (string content in project.Content)
+            {
+                string file = $"{Path.GetDirectoryName(project.Filepath)}/{content}";
+                string outputFile = $"{project.OutputDir}/{content}";
+                string outputDir = Path.GetDirectoryName(outputFile);
+
+                if (!Directory.Exists(outputDir))
+                    Directory.CreateDirectory(outputDir);
+
+                File.Copy(file, outputFile, true);
+            }
+        }
+
         private static Project ConvertAllFilepaths(Project project)
         {
             // OtputDir
@@ -88,6 +103,11 @@ namespace CBuild.Core
             if (project.LibraryDirs != null)
                 for (int i = 0; i < project.LibraryDirs.Length; i++)
                     project.LibraryDirs[i] = ConvertFilepath(project.LibraryDirs[i], project);
+
+            // Content
+            if (project.Content != null)
+                for (int i = 0; i < project.Content.Length; i++)
+                    project.Content[i] = ConvertFilepath(project.Content[i], project);
 
             return project;
         }

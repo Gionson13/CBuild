@@ -24,6 +24,8 @@ namespace CBuild.Core
         public string[] Dependencies { get; set; }
         [YamlMember(9)]
         public string[] ProjectReferences { get; set; }  
+        [YamlMember(10)]
+        public string[] Content { get; set; }
 
         [YamlIgnore]
         public string SolutionDir { get; set; }

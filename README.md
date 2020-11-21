@@ -51,11 +51,12 @@ IncludeDirs: null
 LibraryDirs: null
 Dependencies: null
 ProjectReferences: null
+Content: null
 ```
 
-You add every file you want to compile in Files and you're good to go.
+You add every file (path relative to project directory) you want to compile in Files and you're good to go.
 
-> All the filepath must be relative to the solution directory.
+> All the filepaths are relative to the solution directory unless it is specified otherwise.
 
 The possible OutputType are `Application`, `StaticLibrary` and `DynamicLibrary`.
 And the supported languages are `C` and `Cpp`. 
@@ -106,6 +107,12 @@ Shows the compiler's warnings if true. (default to true)
 Std: c18
 ```
 Set the std version. (default to latest)
+
+```yaml
+Content:
+  - path/to/file.txt
+```
+The content will be copied to the output folder following the right folder structure, the path is relative to the projectDirectory.
 
 Then to build just type `CBuild` in the command line to build all projects, if you want to build one specific type `CBuild projectName`, and you can specify the configuration by typing `CBuild projectName configuration`, configuration must be `Configuration/Platform` (e.g `Debug/x64`).
 
