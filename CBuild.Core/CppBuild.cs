@@ -31,6 +31,11 @@ namespace CBuild.Core
 
         private static void Compile(Project project)
         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Compiling {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Compiling {project.ProjectName} ".Length));
+            Console.ResetColor();
+
             string command = GenerateBasicCommand("g++ -c", project);
 
             // Dynamic Library
@@ -57,6 +62,11 @@ namespace CBuild.Core
             string command = GenerateBasicCommand("g++", project);
             command = GenerateLinkCommand(command, project);
 
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
+
             // Output
             command += $" -o {project.OutputDir}/{project.ProjectName}.exe";
 
@@ -67,6 +77,11 @@ namespace CBuild.Core
 
         public static void CreateStaticLibrary(Project project)
         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
+
             string command = $"ar rcs {project.OutputDir}/{project.ProjectName}.lib";
 
             // File
@@ -89,6 +104,14 @@ namespace CBuild.Core
         {
             string command = GenerateBasicCommand("g++ -shared", project);
             command = GenerateLinkCommand(command, project);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
+
+            if (string.IsNullOrWhiteSpace(command))
+                return;
 
             command += $" -o {project.OutputDir}/{project.ProjectName}.dll";
 

@@ -33,6 +33,11 @@ namespace CBuild.Core
 
         public static void Compile(Project project)
         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Compiling {project.ProjectName} " + 
+                new string('-', Console.BufferWidth - $"Compiling {project.ProjectName} ".Length));
+            Console.ResetColor();
+
             string command = GenerateBasicCommand("gcc -c", project);
 
             // Dynamic Library
@@ -48,26 +53,36 @@ namespace CBuild.Core
                 string filepath = $"{Path.GetDirectoryName(project.Filepath)}/{file}";
                 string filename = Path.GetFileNameWithoutExtension(file);
 
-                Console.WriteLine($"Compiling {file} -> {filename}.o");
+                Console.WriteLine($"{file} -> {filename}.o");
                 Builder.CallCommand($"{command} {filepath} -o {project.ObjectDir}/{filename}.o");
             }
         }
 
         public static void Link(Project project)
         {
+
             string command = GenerateBasicCommand("gcc", project);
             command = GenerateLinkCommand(command, project);
+            
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
 
             // Output
             command += $" -o {project.OutputDir}/{project.ProjectName}.exe";
 
             Console.WriteLine($"Linking -> {command}");
-
             Builder.CallCommand(command);
         }
 
         public static void CreateStaticLibrary(Project project)
         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
+
             string command = $"ar rcs {project.OutputDir}/{project.ProjectName}.lib";
 
             // File
@@ -82,7 +97,6 @@ namespace CBuild.Core
             }
 
             Console.WriteLine("Generating static library -> " + command);
-
             Builder.CallCommand(command);
         }
 
@@ -90,6 +104,11 @@ namespace CBuild.Core
         {
             string command = GenerateBasicCommand("gcc -shared", project);
             command = GenerateLinkCommand(command, project);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
 
             if (string.IsNullOrWhiteSpace(command))
                 return;
@@ -145,7 +164,6 @@ namespace CBuild.Core
 
         public static string GenerateLinkCommand(string command, Project project)
         {
-
             // Configuration
             if (project.CurrentConfiguration.Configuration == "Release")
                 command += " -s";

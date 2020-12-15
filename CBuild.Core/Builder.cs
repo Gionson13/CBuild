@@ -64,21 +64,23 @@ namespace CBuild.Core
             cmd.StandardInput.Close();
             cmd.WaitForExit();
 
-            Console.WriteLine(new string('-', Console.BufferWidth));
         }
 
         public static void CopyContent(Project project)
         {
-            foreach (string content in project.Content)
+            if (project.Content != null)
             {
-                string file = $"{Path.GetDirectoryName(project.Filepath)}/{content}";
-                string outputFile = $"{project.OutputDir}/{content}";
-                string outputDir = Path.GetDirectoryName(outputFile);
+                foreach (string content in project.Content)
+                {
+                    string file = $"{Path.GetDirectoryName(project.Filepath)}/{content}";
+                    string outputFile = $"{project.OutputDir}/{content}";
+                    string outputDir = Path.GetDirectoryName(outputFile);
 
-                if (!Directory.Exists(outputDir))
-                    Directory.CreateDirectory(outputDir);
+                    if (!Directory.Exists(outputDir))
+                        Directory.CreateDirectory(outputDir);
 
-                File.Copy(file, outputFile, true);
+                    File.Copy(file, outputFile, true);
+                }
             }
         }
 
