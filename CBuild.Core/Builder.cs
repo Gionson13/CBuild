@@ -48,12 +48,20 @@ namespace CBuild.Core
         {
             if (AsFile)
             {
+#if WINDOWS
                 File.AppendAllText("CBuild.bat", command + "\n");
+#elif LINUX
+                File.AppendAllText("CBuild.sh", command + "\n");
+#endif
                 return;
             }
 
             Process cmd = new Process();
+#if WINDOWS
             cmd.StartInfo.FileName = "cmd.exe";
+#elif LINUX
+            cmd.StartInfo.FileName = "sh";
+#endif
             cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
             cmd.StartInfo.UseShellExecute = false;

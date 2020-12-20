@@ -68,8 +68,11 @@ namespace CBuild.Core
             Console.ResetColor();
 
             // Output
+#if WINDOWS
             command += $" -o {project.OutputDir}/{project.ProjectName}.exe";
-
+#elif LINUX
+            command += $" -o {project.OutputDir}/{project.ProjectName}";
+#endif
             Console.WriteLine($"Linking -> {command}");
 
             Builder.CallCommand(command);
@@ -82,8 +85,11 @@ namespace CBuild.Core
                 new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
             Console.ResetColor();
 
+#if WINDOWS
             string command = $"ar rcs {project.OutputDir}/{project.ProjectName}.lib";
-
+#elif LINUX
+            string command = $"ar rcs {project.OutputDir}/{project.ProjectName}.a";
+#endif
             // File
             foreach (string file in project.Files)
             {
@@ -113,8 +119,11 @@ namespace CBuild.Core
             if (string.IsNullOrWhiteSpace(command))
                 return;
 
+#if WINDOWS
             command += $" -o {project.OutputDir}/{project.ProjectName}.dll";
-
+#elif LINUX
+            command += $" -o {project.OutputDir}/{project.ProjectName}.so";
+#endif
             Console.WriteLine("Generating dynamic library -> " + command);
             Builder.CallCommand(command);
         }
@@ -216,9 +225,13 @@ namespace CBuild.Core
                     Builder.BuildProject(referenceProject);
                     if (referenceProject.CurrentConfiguration.OutputType == "DynamicLibrary" && !Builder.AsFile)
                     {
+#if WINDOWS
                         string inputFile = $"{referenceProject.OutputDir}/{referenceProject.ProjectName}.dll";
                         string outputFile = $"{project.OutputDir}/{referenceProject.ProjectName}.dll";
-
+#elif LINUX
+                        string inputFile = $"{referenceProject.OutputDir}/{referenceProject.ProjectName}.so";
+                        string outputFile = $"{project.OutputDir}/{referenceProject.ProjectName}.so";
+#endif
                         File.Copy(inputFile, outputFile, true);
                     }
 

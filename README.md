@@ -3,8 +3,12 @@
 Requirements
 ------------
 
-- MingGW
 - Windows
+  - MingGW
+- Linux
+  - gcc
+  - g++
+  - ar
 
 Build C code
 ------------ 
@@ -124,3 +128,14 @@ $(Platform) -> The current platform (x64 / x32)
 ```
 
 Type `CBuild --help` for more.
+
+
+Build
+-----
+
+To build the solution run
+```
+dotnet build -p:DefineConstants=YOUR_PLATFORM /p:Configuration=Release
+```
+
+> Replace YOUR_PLATFORM with WINDOWS or LINUX depending on wich platform you are.
