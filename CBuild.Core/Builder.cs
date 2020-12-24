@@ -26,22 +26,7 @@ namespace CBuild.Core
             if (!Directory.Exists(project.ObjectDir))
                 Directory.CreateDirectory(project.ObjectDir);
 
-            switch (project.Language)
-            {
-                case "C":
-                    CBuild.BuildProject(project);
-                    break;
-                case "Cpp":
-                    CppBuild.BuildProject(project);
-                    break;
-                default:
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("ERROR ");
-                    Console.ResetColor();
-                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
-                    return;
-            }
+            CBuild.BuildProject(project);
         }
 
         public static void CallCommand(string command)

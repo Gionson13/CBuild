@@ -38,7 +38,27 @@ namespace CBuild.Core
                 new string('-', Console.BufferWidth - $"Compiling {project.ProjectName} ".Length));
             Console.ResetColor();
 
-            string command = GenerateBasicCommand("gcc -c", project);
+            string command;
+            switch (project.Language)
+            {
+                case "C":
+                case "c":
+                    command = GenerateBasicCommand("gcc -c", project);
+                    break;
+                case "Cpp":
+                case "cpp":
+                case "C++":
+                case "c++":
+                    command = GenerateBasicCommand("g++ -c", project);
+                    break;
+                default:
+                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR ");
+                    Console.ResetColor();
+                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    return;
+            }
 
             // Dynamic Library
             if (project.CurrentConfiguration.OutputType == "DynamicLibrary")
@@ -47,7 +67,7 @@ namespace CBuild.Core
             // Files
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".c") && !file.EndsWith(".cpp"))
                     continue;
 
                 string filepath = $"{Path.GetDirectoryName(project.Filepath)}/{file}";
@@ -61,7 +81,28 @@ namespace CBuild.Core
         public static void Link(Project project)
         {
 
-            string command = GenerateBasicCommand("gcc", project);
+            string command;
+            switch (project.Language)
+            {
+                case "C":
+                case "c":
+                    command = GenerateBasicCommand("gcc", project);
+                    break;
+                case "Cpp":
+                case "cpp":
+                case "C++":
+                case "c++":
+                    command = GenerateBasicCommand("g++", project);
+                    break;
+                default:
+                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR ");
+                    Console.ResetColor();
+                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    return;
+            }
+
             command = GenerateLinkCommand(command, project);
 
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -97,7 +138,7 @@ namespace CBuild.Core
             // File
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".c") && !file.EndsWith(".cpp"))
                     continue;
 
                 string filename = Path.GetFileNameWithoutExtension(file);
@@ -111,7 +152,27 @@ namespace CBuild.Core
 
         public static void CreateDynamicLibrary(Project project)
         {
-            string command = GenerateBasicCommand("gcc -shared", project);
+            string command;
+            switch (project.Language)
+            {
+                case "C":
+                case "c":
+                    command = GenerateBasicCommand("gcc -shared", project);
+                    break;
+                case "Cpp":
+                case "cpp":
+                case "C++":
+                case "c++":
+                    command = GenerateBasicCommand("g++ -shared", project);
+                    break;
+                default:
+                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR ");
+                    Console.ResetColor();
+                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    return;
+            }
             command = GenerateLinkCommand(command, project);
 
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -253,7 +314,7 @@ namespace CBuild.Core
             // Files
             foreach (string file in project.Files)
             {
-                if (!file.EndsWith(".c"))
+                if (!file.EndsWith(".c") && !file.EndsWith(".cpp"))
                     continue;
 
                 string filename = Path.GetFileNameWithoutExtension(file);
@@ -262,7 +323,7 @@ namespace CBuild.Core
 
             // Project reference lib
             foreach (Project refProject in referenceProjects)
-                command += $" -l{ refProject.ProjectName}";
+                command += $" -l{refProject.ProjectName}";
 
             // Dependencies
             if (project.Dependencies != null)
