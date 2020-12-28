@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 
 namespace CBuild.Core
@@ -68,6 +66,12 @@ namespace CBuild.Core
                     string file = $"{Path.GetDirectoryName(project.Filepath)}/{content}";
                     string outputFile = $"{project.OutputDir}/{content}";
                     string outputDir = Path.GetDirectoryName(outputFile);
+
+                    if (!File.Exists(file))
+                    {
+                        Log.Warning("The specified file does not exist.", content, null);
+                        continue;
+                    }
 
                     if (!Directory.Exists(outputDir))
                         Directory.CreateDirectory(outputDir);
