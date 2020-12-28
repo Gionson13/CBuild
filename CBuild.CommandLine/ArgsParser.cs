@@ -25,10 +25,7 @@ namespace CBuild
 
             if (cslnFiles.Length < 1 && args.Length > 0 && !args[0].StartsWith("-"))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR ");
-                Console.ResetColor();
-                Console.WriteLine($"{new FileNotFoundException().HResult} -> The solution file could not be found.");
+                Log.Error("The solution file could not be found.", Directory.GetCurrentDirectory(), null);
                 return returnArgs;
             }
 

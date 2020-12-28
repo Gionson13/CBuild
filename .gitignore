@@ -1,4 +1,5 @@
 /.vs
+/.vscode
 CBuild.Core/bin
 CBuild.Core/obj
 CBuild.CommandLine/bin

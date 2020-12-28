@@ -24,8 +24,8 @@ namespace CBuild.Core
                     CreateDynamicLibrary(project);
                     break;
                 default:
-                    Console.WriteLine("Invalid output type");
-                    break;
+                    Log.Error("Invalid output type", project.Filepath, null);
+                    return;
             }
 
             Builder.CopyContent(project);
@@ -52,11 +52,7 @@ namespace CBuild.Core
                     command = GenerateBasicCommand("g++ -c", project);
                     break;
                 default:
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("ERROR ");
-                    Console.ResetColor();
-                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    Log.Error("Invalid language", project.Filepath, null);
                     return;
             }
 
@@ -80,6 +76,10 @@ namespace CBuild.Core
 
         public static void Link(Project project)
         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"Linking {project.ProjectName} " +
+                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
+            Console.ResetColor();
 
             string command;
             switch (project.Language)
@@ -95,20 +95,11 @@ namespace CBuild.Core
                     command = GenerateBasicCommand("g++", project);
                     break;
                 default:
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("ERROR ");
-                    Console.ResetColor();
-                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    Log.Error("Invalid language.", project.Filepath, null);
                     return;
             }
 
             command = GenerateLinkCommand(command, project);
-
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($"Linking {project.ProjectName} " +
-                new string('-', Console.BufferWidth - $"Linking {project.ProjectName} ".Length));
-            Console.ResetColor();
 
             // Output
 #if WINDOWS
@@ -166,11 +157,7 @@ namespace CBuild.Core
                     command = GenerateBasicCommand("g++ -shared", project);
                     break;
                 default:
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("ERROR ");
-                    Console.ResetColor();
-                    Console.WriteLine($"{new KeyNotFoundException().HResult} -> Invalid language");
+                    Log.Error("Invalid language.", project.Filepath, null);
                     return;
             }
             command = GenerateLinkCommand(command, project);
@@ -252,13 +239,9 @@ namespace CBuild.Core
                     {
                         projectInSolution = Builder.SolutionFile.Projects.First(project => project.Name == projectRef);
                     }
-                    catch (InvalidOperationException e)
+                    catch (InvalidOperationException)
                     {
-                        Console.WriteLine("Linking failed! -> " + project.Filepath);
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("ERROR ");
-                        Console.ResetColor();
-                        Console.WriteLine($"{e.HResult} -> Project Reference not found");
+                        Log.Error("Linking failed!", project.Filepath, "Project reference not found.");
                         return "";
                     }
                     Serializer serializer = new Serializer();
@@ -279,11 +262,7 @@ namespace CBuild.Core
                     }
                     catch (YamlException e)
                     {
-                        Console.WriteLine("Parsing failed! -> " + projectInSolution.Filepath);
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("ERROR ");
-                        Console.ResetColor();
-                        Console.WriteLine($"{e.HResult} -> {e.Message}");
+                        Log.Error(e.Message, projectInSolution.Filepath, null);
                         return "";
                     }
 

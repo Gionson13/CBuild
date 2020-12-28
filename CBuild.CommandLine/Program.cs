@@ -16,11 +16,7 @@ namespace CBuild
 
             if (!File.Exists(arguments.Filepath))
             {
-                Console.WriteLine("Parsing failed! -> " + arguments.Filepath);
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR ");
-                Console.ResetColor();
-                Console.WriteLine($"{new FileNotFoundException().HResult} -> {new FileNotFoundException().Message}");
+                Log.Error(new FileNotFoundException().Message, arguments.Filepath, null);
                 return;
             }
 
@@ -58,6 +54,10 @@ namespace CBuild
                 Builder.BuildProject(project);
             }
 
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("Finished " +
+                new string('-', Console.BufferWidth - "Finished ".Length));
+            Console.ResetColor();
         }
     }
 

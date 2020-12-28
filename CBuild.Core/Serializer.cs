@@ -38,17 +38,12 @@ namespace CBuild.Core
                 }
                 catch (YamlException e)
                 {
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
+                    Log.Error(e.Message, project.Filepath, null);
                     return new Solution();
                 }
-                catch (InvalidOperationException e)
+                catch (InvalidOperationException)
                 {
-                    Console.WriteLine("Parsing failed! -> " + project.Filepath);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("ERROR ");
-                    Console.ResetColor();
-                    Console.WriteLine($"{e.HResult} -> Project Configuration not found");
+                    Log.Error("Project configuration not found.", project.Filepath, null);
                     return new Solution();
                 }
             }
@@ -68,17 +63,12 @@ namespace CBuild.Core
             }
             catch (YamlException e)
             {
-                Console.WriteLine("Parsing failed! -> " + path);
-                Console.WriteLine($"ERROR {e.HResult} -> {e.Message}");
+                Log.Error(e.Message, path, null);
                 return new Project();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
-                Console.WriteLine("Parsing failed! -> " + path);
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR ");
-                Console.ResetColor();
-                Console.WriteLine($"{e.HResult} -> Project Configuration not found");
+                Log.Error("Project configuration not found.", path, null);
                 return new Project();
             }
 
@@ -103,11 +93,7 @@ namespace CBuild.Core
             }
             catch (YamlException e)
             {
-                Console.WriteLine("Parsing failed! -> " + path);
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR ");
-                Console.ResetColor();
-                Console.WriteLine($"{e.HResult} -> {e.Message}");
+                Log.Error(e.Message, path, null);
                 return new SolutionFile();
             }
 
